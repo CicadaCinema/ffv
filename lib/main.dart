@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:crypto/crypto.dart';
 
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:cross_file/cross_file.dart';
@@ -33,6 +34,7 @@ class ExampleDragTarget extends StatefulWidget {
 
 class _ExampleDragTargetState extends State<ExampleDragTarget> {
   List<XFile> _fileList = [];
+  List<String> _fileHashes = [];
   int _filesChosen = 0;
 
   bool _dragging = false;
@@ -44,6 +46,26 @@ class _ExampleDragTargetState extends State<ExampleDragTarget> {
     fontWeight: FontWeight.bold,
   );
 
+  Future<void> _executeComparison() async {
+    for (final file in _fileList) {
+      // copied from
+      // https://github.com/dart-lang/crypto/blob/master/example/example.dart
+      var filename = file.path;
+      var input = File(filename);
+
+      if (!input.existsSync()) {
+        print("File $filename does not exist.");
+        exit(66);
+      }
+
+      var value = await sha512.bind(input.openRead()).first;
+      _fileHashes.add(value.toString());
+    }
+
+    _hashResult = _fileHashes[0] == _fileHashes[1];
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return NavigationView(
@@ -53,6 +75,11 @@ class _ExampleDragTargetState extends State<ExampleDragTarget> {
           child: _filesChosen == 2
               ? Container(
                   width: MediaQuery.of(context).size.width,
+                  color: _hashResult == null
+                      ? null
+                      : _hashResult!
+                          ? Colors.green
+                          : Colors.red,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -67,7 +94,9 @@ class _ExampleDragTargetState extends State<ExampleDragTarget> {
                       Button(
                         onPressed: () {
                           _fileList.clear();
+                          _fileHashes.clear();
                           _filesChosen = 0;
+                          _hashResult = null;
                           setState(() {});
                         },
                         child: const Text("Refresh"),
@@ -87,6 +116,10 @@ class _ExampleDragTargetState extends State<ExampleDragTarget> {
 
                       _fileList.add(detail.files[0]);
                       _filesChosen += 1;
+
+                      if (_filesChosen == 2) {
+                        _executeComparison();
+                      }
                     });
                   },
                   onDragEntered: (detail) {

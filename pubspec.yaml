@@ -33,6 +33,7 @@ dependencies:
   fluent_ui: ^3.9.1
   cross_file: ^0.3.2
   desktop_drop: ^0.3.3
+  crypto: ^3.0.1
 
 
   # The following adds the Cupertino Icons font to your application.
