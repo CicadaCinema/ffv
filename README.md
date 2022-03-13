@@ -1,16 +1,20 @@
-# ffv
+# ffv: File and Folder Verifier
 
-A new Flutter project.
+This tool will help you to verify whether the contents of two files are the same.
 
-## Getting Started
+## Supported platforms
+* Windows
 
-This project is a starting point for a Flutter application.
+## Current functionality
 
-A few resources to get you started if this is your first Flutter project:
+* Drag-and-dropping your file into the ffv window to select it for comparison
+* Comparison of one, single file against another single file
+* Comparison of files using the SHA-512 algorithm
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+## Planned functionality
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+* Invoking a file picker to select your file, instead of dropping the file into the window
+* Comparison of multiple files, comparison of folders
+* Comparison of files with a user-selectable algorithm
+* Displaying auxiliary information (such as the hashes obtained, file sizes and paths) after the comparison has been completed
+
