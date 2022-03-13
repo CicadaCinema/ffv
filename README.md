@@ -2,6 +2,10 @@
 
 This tool will help you to verify whether the contents of two files are the same.
 
+## Demo
+
+https://streamable.com/r6ubp9
+
 ## Supported platforms
 * Windows
 
