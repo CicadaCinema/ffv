@@ -11,7 +11,12 @@ jobs:
      - run: flutter --version
      - run: flutter config --no-analytics
      - run: flutter build windows
-     - uses: actions/upload-artifact@v2
+     - uses: actions/upload-artifact@v3
        with:
-         name: windows_64
+         name: windows_exe
          path: build/windows/runner/Release/
+     - run: flutter pub run msix:create
+     - uses: actions/upload-artifact@v3
+       with:
+         name: windows_msix
+         path: build/windows/runner/Release/ffv.msix
