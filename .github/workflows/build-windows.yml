@@ -1,4 +1,4 @@
-name: GitHub Actions Demo
+name: Build for Windows
 on: [push]
 jobs:
  build:
