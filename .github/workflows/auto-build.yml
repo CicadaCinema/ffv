@@ -1,7 +1,7 @@
-name: Build for Windows
-on: workflow_dispatch
+name: Automatic Builds
+on: [push]
 jobs:
- build:
+ windows-build:
    runs-on: windows-latest
    steps:
      - uses: actions/checkout@v2
