@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FluentApp(
-      title: 'Flutter Demo',
+      title: "ffv",
       color: Colors.blue,
       theme: ThemeData(
         brightness: Brightness.light,
@@ -142,7 +142,7 @@ class _ExampleDragTargetState extends State<ExampleDragTarget> {
                   ),
                 ),
         ),
-        Center(
+        const Center(
           child: Text("Settings!"),
         )
       ]),
