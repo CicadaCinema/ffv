@@ -4,6 +4,7 @@ import 'package:crypto/crypto.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:cross_file/cross_file.dart';
 import 'package:desktop_drop/desktop_drop.dart';
+import 'package:flutter/foundation.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,31 +16,31 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FluentApp(
-      title: "ffv",
+      title: 'ffv',
       color: Colors.blue,
       theme: ThemeData(
         brightness: Brightness.light,
       ),
-      home: ExampleDragTarget(),
+      home: const MainScreen(),
     );
   }
 }
 
-class ExampleDragTarget extends StatefulWidget {
-  const ExampleDragTarget({Key? key}) : super(key: key);
+class MainScreen extends StatefulWidget {
+  const MainScreen({Key? key}) : super(key: key);
 
   @override
-  _ExampleDragTargetState createState() => _ExampleDragTargetState();
+  State<MainScreen> createState() => _MainScreenState();
 }
 
-class _ExampleDragTargetState extends State<ExampleDragTarget> {
-  List<XFile> _fileList = [];
-  List<String> _fileHashes = [];
+class _MainScreenState extends State<MainScreen> {
+  final List<XFile> _fileList = [];
+  final List<String> _fileHashes = [];
   int _filesChosen = 0;
 
   bool _dragging = false;
   int _currentIndex = 0;
-  bool? _hashResult = null;
+  bool? _hashResult;
 
   final TextStyle _bigStyle = const TextStyle(
     fontSize: 64,
@@ -54,7 +55,9 @@ class _ExampleDragTargetState extends State<ExampleDragTarget> {
       var input = File(filename);
 
       if (!input.existsSync()) {
-        print("File $filename does not exist.");
+        if (kDebugMode) {
+          print('File $filename does not exist.');
+        }
         exit(66);
       }
 
@@ -92,10 +95,10 @@ class _ExampleDragTargetState extends State<ExampleDragTarget> {
                         children: [
                           Text(
                             _hashResult == null
-                                ? "Loading..."
+                                ? 'Loading...'
                                 : _hashResult!
-                                    ? "MATCH"
-                                    : "NO MATCH",
+                                    ? 'MATCH'
+                                    : 'NO MATCH',
                             style: _bigStyle,
                           ),
                           Button(
@@ -106,7 +109,7 @@ class _ExampleDragTargetState extends State<ExampleDragTarget> {
                               _hashResult = null;
                               setState(() {});
                             },
-                            child: const Text("Refresh"),
+                            child: const Text('Refresh'),
                           ),
                         ],
                       ),
@@ -152,7 +155,7 @@ class _ExampleDragTargetState extends State<ExampleDragTarget> {
             icon: const Icon(FluentIcons.settings),
             title: const Text('Settings'),
             body: const Center(
-              child: Text("Settings!"),
+              child: Text('Settings!'),
             ),
           ),
         ],
