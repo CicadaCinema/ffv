@@ -69,83 +69,94 @@ class _ExampleDragTargetState extends State<ExampleDragTarget> {
   @override
   Widget build(BuildContext context) {
     return NavigationView(
-      content: NavigationBody(index: _currentIndex, children: [
-        Container(
-          color: _dragging ? Colors.blue : Colors.white,
-          child: _filesChosen == 2
-              ? Container(
-                  width: MediaQuery.of(context).size.width,
-                  color: _hashResult == null
-                      ? null
-                      : _hashResult!
-                          ? Colors.green
-                          : Colors.red,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        _hashResult == null
-                            ? "Loading..."
-                            : _hashResult!
-                                ? "MATCH"
-                                : "NO MATCH",
-                        style: _bigStyle,
+      pane: NavigationPane(
+        selected: _currentIndex,
+        onChanged: (index) => setState(() => _currentIndex = index),
+        displayMode: PaneDisplayMode.top,
+        items: [
+          PaneItem(
+            icon: const Icon(FluentIcons.check_mark),
+            title: const Text('Verify'),
+            body: Container(
+              color: _dragging ? Colors.blue : Colors.white,
+              child: _filesChosen == 2
+                  ? Container(
+                      width: MediaQuery.of(context).size.width,
+                      color: _hashResult == null
+                          ? null
+                          : _hashResult!
+                              ? Colors.green
+                              : Colors.red,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            _hashResult == null
+                                ? "Loading..."
+                                : _hashResult!
+                                    ? "MATCH"
+                                    : "NO MATCH",
+                            style: _bigStyle,
+                          ),
+                          Button(
+                            onPressed: () {
+                              _fileList.clear();
+                              _fileHashes.clear();
+                              _filesChosen = 0;
+                              _hashResult = null;
+                              setState(() {});
+                            },
+                            child: const Text("Refresh"),
+                          ),
+                        ],
                       ),
-                      Button(
-                        onPressed: () {
-                          _fileList.clear();
-                          _fileHashes.clear();
-                          _filesChosen = 0;
-                          _hashResult = null;
-                          setState(() {});
-                        },
-                        child: const Text("Refresh"),
-                      ),
-                    ],
-                  ),
-                )
-              : DropTarget(
-                  onDragDone: (detail) {
-                    setState(() {
-                      // hard exit if the user has dropped more than one file
-                      if (detail.files.length != 1) {
-                        exit(0);
-                      }
-                      // TODO: add support for multiple files
-                      // _list.addAll(detail.files);
+                    )
+                  : DropTarget(
+                      onDragDone: (detail) {
+                        setState(() {
+                          // hard exit if the user has dropped more than one file
+                          if (detail.files.length != 1) {
+                            exit(0);
+                          }
+                          // TODO: add support for multiple files
+                          // _list.addAll(detail.files);
 
-                      _fileList.add(detail.files[0]);
-                      _filesChosen += 1;
+                          _fileList.add(detail.files[0]);
+                          _filesChosen += 1;
 
-                      if (_filesChosen == 2) {
-                        _executeComparison();
-                      }
-                    });
-                  },
-                  onDragEntered: (detail) {
-                    setState(() {
-                      _dragging = true;
-                    });
-                  },
-                  onDragExited: (detail) {
-                    setState(() {
-                      _dragging = false;
-                    });
-                  },
-                  child: Container(
-                    child: Center(
-                      child: Text(
-                        (_filesChosen + 1).toString(),
-                        style: _bigStyle,
+                          if (_filesChosen == 2) {
+                            _executeComparison();
+                          }
+                        });
+                      },
+                      onDragEntered: (detail) {
+                        setState(() {
+                          _dragging = true;
+                        });
+                      },
+                      onDragExited: (detail) {
+                        setState(() {
+                          _dragging = false;
+                        });
+                      },
+                      child: Center(
+                        child: Text(
+                          (_filesChosen + 1).toString(),
+                          style: _bigStyle,
+                        ),
                       ),
                     ),
-                  ),
-                ),
-        ),
-        const Center(
-          child: Text("Settings!"),
-        )
-      ]),
+            ),
+          ),
+          PaneItem(
+            icon: const Icon(FluentIcons.settings),
+            title: const Text('Settings'),
+            body: const Center(
+              child: Text("Settings!"),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
