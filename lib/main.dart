@@ -1,10 +1,13 @@
 import 'dart:io';
 import 'package:crypto/crypto.dart';
+import 'package:ffv/bridge_generated.dart';
 
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:cross_file/cross_file.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/foundation.dart';
+
+import 'ffi.dart';
 
 void main() {
   runApp(const MyApp());
@@ -71,6 +74,8 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // TODO: remove this test
+    api.add(left: 3, right: 38).then((value) => print(value));
     return NavigationView(
       pane: NavigationPane(
         selected: _currentIndex,
