@@ -1,11 +1,8 @@
 import 'dart:io';
-import 'package:crypto/crypto.dart';
-import 'package:ffv/bridge_generated.dart';
 
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:cross_file/cross_file.dart';
 import 'package:desktop_drop/desktop_drop.dart';
-import 'package:flutter/foundation.dart';
 
 import 'ffi.dart';
 
@@ -50,32 +47,8 @@ class _MainScreenState extends State<MainScreen> {
     fontWeight: FontWeight.bold,
   );
 
-  Future<void> _executeComparison() async {
-    for (final file in _fileList) {
-      // copied from
-      // https://github.com/dart-lang/crypto/blob/master/example/example.dart
-      var filename = file.path;
-      var input = File(filename);
-
-      if (!input.existsSync()) {
-        if (kDebugMode) {
-          print('File $filename does not exist.');
-        }
-        exit(66);
-      }
-
-      var value = await sha512.bind(input.openRead()).first;
-      _fileHashes.add(value.toString());
-    }
-
-    _hashResult = _fileHashes[0] == _fileHashes[1];
-    setState(() {});
-  }
-
   @override
   Widget build(BuildContext context) {
-    // TODO: remove this test
-    api.add(left: 3, right: 38).then((value) => print(value));
     return NavigationView(
       pane: NavigationPane(
         selected: _currentIndex,
@@ -131,11 +104,17 @@ class _MainScreenState extends State<MainScreen> {
 
                           _fileList.add(detail.files[0]);
                           _filesChosen += 1;
-
-                          if (_filesChosen == 2) {
-                            _executeComparison();
-                          }
                         });
+                        if (_filesChosen == 2) {
+                          api
+                              .compare(
+                                left: _fileList[0].path,
+                                right: _fileList[1].path,
+                              )
+                              .then((value) => setState(() {
+                                    _hashResult = value;
+                                  }));
+                        }
                       },
                       onDragEntered: (detail) {
                         setState(() {

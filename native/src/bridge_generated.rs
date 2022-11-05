@@ -19,21 +19,21 @@ use flutter_rust_bridge::*;
 
 // Section: wire functions
 
-fn wire_add_impl(
+fn wire_compare_impl(
     port_: MessagePort,
-    left: impl Wire2Api<usize> + UnwindSafe,
-    right: impl Wire2Api<usize> + UnwindSafe,
+    left: impl Wire2Api<String> + UnwindSafe,
+    right: impl Wire2Api<String> + UnwindSafe,
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap(
         WrapInfo {
-            debug_name: "add",
+            debug_name: "compare",
             port: Some(port_),
             mode: FfiCallMode::Normal,
         },
         move || {
             let api_left = left.wire2api();
             let api_right = right.wire2api();
-            move |task_callback| Ok(add(api_left, api_right))
+            move |task_callback| Ok(compare(api_left, api_right))
         },
     )
 }
@@ -57,11 +57,13 @@ where
         (!self.is_null()).then(|| self.wire2api())
     }
 }
-impl Wire2Api<usize> for usize {
-    fn wire2api(self) -> usize {
+
+impl Wire2Api<u8> for u8 {
+    fn wire2api(self) -> u8 {
         self
     }
 }
+
 // Section: impl IntoDart
 
 // Section: executor

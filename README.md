@@ -13,7 +13,7 @@ https://streamable.com/r6ubp9
 
 * Drag-and-dropping your file into the ffv window to select it for comparison
 * Comparison of one, single file against another single file
-* Comparison of files using the SHA-512 algorithm
+* Comparison of files using the [HighwayHash](https://arxiv.org/abs/1612.06257) algorithm
 
 ## Planned functionality
 

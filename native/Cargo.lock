@@ -91,7 +91,8 @@ dependencies = [
 [[package]]
 name = "flutter_rust_bridge"
 version = "1.49.0"
-source = "git+https://github.com/fzyzcjy/flutter_rust_bridge.git?branch=master#d4cde854b9681f823eeca935b1c1c11c34e52522"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ed8b7f43f7c8293bc25feabe78403367c629a6459ccd05f3363040cb24912e8e"
 dependencies = [
  "allo-isolate",
  "anyhow",
@@ -111,7 +112,8 @@ dependencies = [
 [[package]]
 name = "flutter_rust_bridge_macros"
 version = "1.49.0"
-source = "git+https://github.com/fzyzcjy/flutter_rust_bridge.git?branch=master#d4cde854b9681f823eeca935b1c1c11c34e52522"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d0a4086ff226bcfc6436513504e1a35273556aaebe884c32174028c29a904ea0"
 
 [[package]]
 name = "hermit-abi"
@@ -121,6 +123,12 @@ checksum = "62b467343b94ba476dcb2500d242dadbb39557df889310ac77c5d99100aaac33"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "highway"
+version = "0.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1489f81ead4b71a09ddeab6850c0356c0932587637d753f21ee1010ab875b013"
 
 [[package]]
 name = "js-sys"
@@ -167,6 +175,7 @@ name = "native"
 version = "0.1.0"
 dependencies = [
  "flutter_rust_bridge",
+ "highway",
 ]
 
 [[package]]

@@ -11,9 +11,10 @@ import 'package:meta/meta.dart';
 import 'dart:ffi' as ffi;
 
 abstract class Native {
-  Future<int> add({required int left, required int right, dynamic hint});
+  Future<bool> compare(
+      {required String left, required String right, dynamic hint});
 
-  FlutterRustBridgeTaskConstMeta get kAddConstMeta;
+  FlutterRustBridgeTaskConstMeta get kCompareConstMeta;
 }
 
 class NativeImpl implements Native {
@@ -25,33 +26,34 @@ class NativeImpl implements Native {
   factory NativeImpl.wasm(FutureOr<WasmModule> module) =>
       NativeImpl(module as ExternalLibrary);
   NativeImpl.raw(this._platform);
-  Future<int> add({required int left, required int right, dynamic hint}) =>
+  Future<bool> compare(
+          {required String left, required String right, dynamic hint}) =>
       _platform.executeNormal(FlutterRustBridgeTask(
-        callFfi: (port_) => _platform.inner
-            .wire_add(port_, api2wire_usize(left), api2wire_usize(right)),
-        parseSuccessData: _wire2api_usize,
-        constMeta: kAddConstMeta,
+        callFfi: (port_) => _platform.inner.wire_compare(port_,
+            _platform.api2wire_String(left), _platform.api2wire_String(right)),
+        parseSuccessData: _wire2api_bool,
+        constMeta: kCompareConstMeta,
         argValues: [left, right],
         hint: hint,
       ));
 
-  FlutterRustBridgeTaskConstMeta get kAddConstMeta =>
+  FlutterRustBridgeTaskConstMeta get kCompareConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
-        debugName: "add",
+        debugName: "compare",
         argNames: ["left", "right"],
       );
 
 // Section: wire2api
 
-  int _wire2api_usize(dynamic raw) {
-    return castInt(raw);
+  bool _wire2api_bool(dynamic raw) {
+    return raw as bool;
   }
 }
 
 // Section: api2wire
 
 @protected
-int api2wire_usize(int raw) {
+int api2wire_u8(int raw) {
   return raw;
 }
 
@@ -59,6 +61,17 @@ class NativePlatform extends FlutterRustBridgeBase<NativeWire> {
   NativePlatform(ffi.DynamicLibrary dylib) : super(NativeWire(dylib));
 // Section: api2wire
 
+  @protected
+  ffi.Pointer<wire_uint_8_list> api2wire_String(String raw) {
+    return api2wire_uint_8_list(utf8.encoder.convert(raw));
+  }
+
+  @protected
+  ffi.Pointer<wire_uint_8_list> api2wire_uint_8_list(Uint8List raw) {
+    final ans = inner.new_uint_8_list_0(raw.length);
+    ans.ref.ptr.asTypedList(raw.length).setAll(0, raw);
+    return ans;
+  }
 // Section: api_fill_to_wire
 
 }
@@ -99,23 +112,40 @@ class NativeWire implements FlutterRustBridgeWireBase {
   late final _store_dart_post_cobject = _store_dart_post_cobjectPtr
       .asFunction<void Function(DartPostCObjectFnType)>();
 
-  void wire_add(
+  void wire_compare(
     int port_,
-    int left,
-    int right,
+    ffi.Pointer<wire_uint_8_list> left,
+    ffi.Pointer<wire_uint_8_list> right,
   ) {
-    return _wire_add(
+    return _wire_compare(
       port_,
       left,
       right,
     );
   }
 
-  late final _wire_addPtr = _lookup<
+  late final _wire_comparePtr = _lookup<
       ffi.NativeFunction<
-          ffi.Void Function(ffi.Int64, uintptr_t, uintptr_t)>>('wire_add');
-  late final _wire_add =
-      _wire_addPtr.asFunction<void Function(int, int, int)>();
+          ffi.Void Function(ffi.Int64, ffi.Pointer<wire_uint_8_list>,
+              ffi.Pointer<wire_uint_8_list>)>>('wire_compare');
+  late final _wire_compare = _wire_comparePtr.asFunction<
+      void Function(
+          int, ffi.Pointer<wire_uint_8_list>, ffi.Pointer<wire_uint_8_list>)>();
+
+  ffi.Pointer<wire_uint_8_list> new_uint_8_list_0(
+    int len,
+  ) {
+    return _new_uint_8_list_0(
+      len,
+    );
+  }
+
+  late final _new_uint_8_list_0Ptr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<wire_uint_8_list> Function(
+              ffi.Int32)>>('new_uint_8_list_0');
+  late final _new_uint_8_list_0 = _new_uint_8_list_0Ptr
+      .asFunction<ffi.Pointer<wire_uint_8_list> Function(int)>();
 
   void free_WireSyncReturnStruct(
     WireSyncReturnStruct val,
@@ -132,7 +162,13 @@ class NativeWire implements FlutterRustBridgeWireBase {
       .asFunction<void Function(WireSyncReturnStruct)>();
 }
 
+class wire_uint_8_list extends ffi.Struct {
+  external ffi.Pointer<ffi.Uint8> ptr;
+
+  @ffi.Int32()
+  external int len;
+}
+
 typedef DartPostCObjectFnType = ffi.Pointer<
     ffi.NativeFunction<ffi.Bool Function(DartPort, ffi.Pointer<ffi.Void>)>>;
 typedef DartPort = ffi.Int64;
-typedef uintptr_t = ffi.UnsignedLongLong;
