@@ -1,7 +1,7 @@
 name: Run codegen
 on: [push]
 jobs:
- windows-build:
+ run-codegen:
    runs-on: windows-latest
    steps:
      - uses: actions/checkout@v3
