@@ -1,6 +1,7 @@
-import 'package:fluent_ui/fluent_ui.dart';
-
 import 'dart:io';
+
+import 'package:fluent_ui/fluent_ui.dart';
+import 'package:path/path.dart' as path;
 
 import 'package:cross_file/cross_file.dart';
 import 'package:desktop_drop/desktop_drop.dart';
@@ -27,13 +28,86 @@ class ComparisonScreen extends StatefulWidget {
 }
 
 class _ComparisonScreenState extends State<ComparisonScreen> {
-  final List<XFile> _files1 = [];
-  final List<XFile> _files2 = [];
+  List<XFile> _files1 = [];
+  List<XFile> _files2 = [];
 
   var _dragging = false;
-  late bool _hashResult;
+  late bool? _hashResult;
 
   var _currentState = ComparisonState.choosing1;
+
+  Future<void> executeComparison() async {
+    void invalidateResult() {
+      setState(() {
+        _hashResult = null;
+        _currentState = ComparisonState.result;
+      });
+    }
+
+    /// Return a list containing all the files listed in [filesAndDirectories]
+    /// as well as the (recursive) contents of any directories given in the input list.
+    List<XFile> traverseDirectories(List<XFile> filesAndDirectories) {
+      // TODO: can we do this by mutating filesAndDirectories directory instead of returning a value?
+      final List<XFile> newFiles = [];
+      filesAndDirectories.removeWhere((xFile) {
+        final potentialDir = Directory(xFile.path);
+        if (potentialDir.existsSync()) {
+          newFiles.addAll(potentialDir
+              .listSync(recursive: true)
+              .whereType<File>()
+              .map((e) => XFile(e.path)));
+          return true;
+        }
+        return false;
+      });
+      return [...filesAndDirectories, ...newFiles];
+    }
+
+    // if any directories are to be compared, traverse them and add their contents
+    _files1 = traverseDirectories(_files1);
+    _files2 = traverseDirectories(_files2);
+
+    // ensure the file count is consistent
+    if (_files1.length != _files2.length) {
+      invalidateResult();
+      return;
+    }
+
+    // sort files canonically by their path
+    sortByPath(XFile a, XFile b) =>
+        path.canonicalize(a.path).compareTo(path.canonicalize(b.path));
+    _files1.sort(sortByPath);
+    _files2.sort(sortByPath);
+
+    // ensure the file sizes are consistent
+    for (var i = 0; i < _files1.length; i++) {
+      if ((await _files1[i].length()) != (await _files2[i].length())) {
+        invalidateResult();
+        return;
+      }
+    }
+
+    // compare file hashes one by one
+    // TODO: implement multithreading according to the number of available cores
+    for (var i = 0; i < _files1.length; i++) {
+      // if any pair of files have different hashes, terminate the comparison immediately
+      if (!(await api.compare(
+        left: _files1[i].path,
+        right: _files2[i].path,
+      ))) {
+        setState(() {
+          _hashResult = false;
+          _currentState = ComparisonState.result;
+        });
+        return;
+      }
+    }
+
+    setState(() {
+      _hashResult = true;
+      _currentState = ComparisonState.result;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,32 +117,24 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
               _currentState == ComparisonState.choosing2
           ? DropTarget(
               onDragDone: (detail) {
-                // hard exit if the user has dropped more than one file
-                // TODO: add support for multiple files
-                if (detail.files.length != 1) {
-                  exit(0);
-                }
-
                 if (_currentState == ComparisonState.choosing1) {
+                  // the files on one side of the comparison
                   _files1.addAll(detail.files);
                   setState(() {
                     _currentState = ComparisonState.choosing2;
                   });
+
+                  return;
                 } else {
+                  // the files on the other side of the comparison
                   _files2.addAll(detail.files);
                   setState(() {
                     _currentState = ComparisonState.loading;
                   });
-                  api
-                      .compare(
-                        left: _files1.first.path,
-                        right: _files2.first.path,
-                      )
-                      .then((value) => setState(() {
-                            _hashResult = value;
-                            _currentState = ComparisonState.result;
-                          }));
                 }
+
+                // both lists of files are now populated
+                executeComparison();
               },
               onDragEntered: (detail) {
                 setState(() {
@@ -91,7 +157,8 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
               width: MediaQuery.of(context).size.width,
               color: _currentState == ComparisonState.loading
                   ? null
-                  : _hashResult
+                  // an invalid comparison counts as a fail
+                  : _hashResult ?? false
                       ? Colors.green
                       : Colors.red,
               child: _currentState == ComparisonState.loading
@@ -105,7 +172,11 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          _hashResult ? 'MATCH' : 'NO MATCH',
+                          _hashResult == null
+                              ? 'INVALID'
+                              : _hashResult!
+                                  ? 'MATCH'
+                                  : 'NO MATCH',
                           style: _bigStyle,
                         ),
                         Button(
