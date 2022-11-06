@@ -36,6 +36,11 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
 
   var _currentState = ComparisonState.choosing1;
 
+  // used by the progress indicator
+  var completedSize = 0;
+  var totalSize = 0;
+  var fileCount = 0;
+
   Future<void> executeComparison() async {
     void invalidateResult() {
       setState(() {
@@ -67,6 +72,10 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
     _files1 = traverseDirectories(_files1);
     _files2 = traverseDirectories(_files2);
 
+    setState(() {
+      fileCount = _files1.length;
+    });
+
     // ensure the file count is consistent
     if (_files1.length != _files2.length) {
       invalidateResult();
@@ -85,6 +94,7 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
         invalidateResult();
         return;
       }
+      totalSize += await _files1[i].length();
     }
 
     // compare file hashes one by one
@@ -101,6 +111,12 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
         });
         return;
       }
+
+      // update the progress bar
+      final fileSize = await _files1[i].length();
+      setState(() {
+        completedSize += fileSize;
+      });
     }
 
     setState(() {
@@ -162,11 +178,20 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
                       ? Colors.green
                       : Colors.red,
               child: _currentState == ComparisonState.loading
-                  ? const Center(
-                      child: Text(
-                        'Loading...',
-                        style: _bigStyle,
-                      ),
+                  ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'LOADING',
+                          style: _bigStyle,
+                        ),
+                        Text('Comparing $fileCount files...'),
+                        ProgressBar(
+                          value: totalSize == 0
+                              ? 0
+                              : (completedSize / totalSize) * 100,
+                        )
+                      ],
                     )
                   : Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -183,6 +208,9 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
                           onPressed: () {
                             _files1.clear();
                             _files2.clear();
+                            completedSize = 0;
+                            totalSize = 0;
+                            fileCount = 0;
                             setState(() {
                               _currentState = ComparisonState.choosing1;
                             });
